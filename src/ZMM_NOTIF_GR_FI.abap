@@ -132,8 +132,7 @@ FORM f_gerar_documento_fi
   CHANGING cv_doc_contabil TYPE belnr_d
            cv_erro         TYPE xfeld.
   " [IMPLEMENTAR] — seção 5.6 + RN01 da FS
-  " SLA: documento FI em até 60s — CA03 da FS
-  " [VERIFICAR COM CLIENTE] — SLA alterado para 30s? Ver requirements.md
+  " SLA: documento FI em até 30s — CA03 da FS (atualizado em 02/07/2026, conforme requirements.md)
 ENDFORM.
 
 FORM f_tratar_divergencia

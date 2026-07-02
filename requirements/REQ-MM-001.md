@@ -41,7 +41,7 @@ Estoque atualizado + documento contábil gerado em uma única operação no SAP,
 
 - 100% das entradas de NF registradas exclusivamente no SAP
 - Zero registros duplicados no Sismat após go-live
-- Documento contábil gerado em até 60 segundos após lançamento de entrada
+- Documento contábil gerado em até 30 segundos após lançamento de entrada
 
 ---
 
@@ -70,3 +70,11 @@ Configuração / A verificar
 3. A versão SAP implantada é ECC ou S/4HANA?
 4. Existe algum processo que ainda exige o Sismat que não foi mapeado nesta reunião?
 5. Quais perfis de usuário terão acesso à transação de entrada de mercadoria?
+
+---
+
+## Histórico de Alterações
+
+| Data | Alteração | Origem |
+|---|---|---|
+| 02/07/2026 | SLA de geração do documento contábil alterado de 60s para 30s | Solicitação do cliente |

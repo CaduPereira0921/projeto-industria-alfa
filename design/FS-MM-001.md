@@ -92,7 +92,7 @@ Eliminar o lançamento paralelo no sistema legado Sismat, concentrando o registr
 |---|---|---|
 | CA01 | 100% das entradas de NF lançadas exclusivamente no SAP, nos primeiros 30 dias após go-live, ambiente de produção. | Relatório de lançamentos MM x ausência de registros no Sismat. |
 | CA02 | Zero lançamentos duplicados no Sismat, nos primeiros 30 dias após go-live, ambiente de produção. | Auditoria de log de acesso ao Sismat. |
-| CA03 | Documento contábil gerado em até 60 segundos após confirmação da entrada, ambiente de produção sob carga normal. | Comparação de timestamp entre documento MM e documento FI. |
+| CA03 | Documento contábil gerado em até 30 segundos após confirmação da entrada, ambiente de produção sob carga normal. | Comparação de timestamp entre documento MM e documento FI. |
 | CA04 | [VERIFICAR COM CLIENTE] — definir critério de aceite para tratamento de dados históricos do Sismat, se aplicável. | [VERIFICAR COM CLIENTE] |
 
 ## 10. Pontos em Aberto
