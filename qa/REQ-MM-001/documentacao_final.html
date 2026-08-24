@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Documentação de Testes - REQ-MM-001</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background:#f3f4f6; margin:0; padding:32px; color:#1f2937; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header { background:#111827; color:#fff; padding:24px 32px; border-radius:12px 12px 0 0; }
+  .header h1 { margin:0; font-size:22px; }
+  .header p { margin:6px 0 0; color:#9ca3af; font-size:14px; }
+  .section { background:#fff; padding:24px 32px; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb; }
+  .section h2 { font-size:15px; text-transform:uppercase; letter-spacing:.05em; color:#374151; border-bottom:2px solid #e5e7eb; padding-bottom:8px; }
+  .footer { background:#fff; padding:20px 32px; border-radius:0 0 12px 12px; border:1px solid #e5e7eb; border-top:none; }
+  .resumo { display:flex; gap:16px; }
+  .resumo-card { flex:1; padding:16px; border-radius:10px; text-align:center; border:1px solid #e5e7eb; }
+  .resumo-card.pct { background:#eff6ff; border-color:#bfdbfe; }
+  .resumo-valor { font-size:26px; font-weight:700; margin:4px 0; }
+  .resumo-label { font-size:11px; color:#6b7280; text-transform:uppercase; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th, td { text-align:left; padding:10px; border-bottom:1px solid #e5e7eb; vertical-align:top; }
+  th { background:#f9fafb; font-size:11px; text-transform:uppercase; color:#6b7280; }
+  td.center { text-align:center; }
+  td.ct-id { font-weight:600; white-space:nowrap; }
+  td.mono { font-family: Consolas, monospace; font-size:11.5px; }
+  .badge { color:#fff; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .proximo { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:16px 20px; }
+  .proximo strong { display:block; color:#92400e; font-size:12px; text-transform:uppercase; margin-bottom:6px; }
+  .pontos-abertos { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px 20px; }
+  .pontos-abertos ul { margin:0; padding-left:18px; }
+  .pontos-abertos li { margin-bottom:8px; font-size:12.5px; }
+  .pontos-abertos strong { color:#991b1b; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Documentação de Testes — REQ-MM-001</h1>
+    <p>[cliente] · Módulo MM/FI · Etapa 3/3 — pipeline-qualidade-ayesa</p>
+  </div>
+
+  <div class="section">
+    <h2>Resumo do Requisito</h2>
+    <p>Integracao automatica SAP <-> Sismat para eliminar dupla digitacao de Nota Fiscal: geracao automatica do documento contabil (FI) no SAP a partir da confirmacao da NF no Sismat, para fornecedores nacionais homologados.</p>
+  </div>
+
+  <div class="section">
+    <h2>Status de Automação</h2>
+    <div class="resumo">
+      <div class="resumo-card pct">
+        <div class="resumo-label">% Implementado</div>
+        <div class="resumo-valor">0.0%</div>
+      </div>
+      <div class="resumo-card">
+        <div class="resumo-label">Total de Casos</div>
+        <div class="resumo-valor">5</div>
+      </div>
+      <div class="resumo-card">
+        <div class="resumo-label">Métodos Pendentes</div>
+        <div class="resumo-valor" style="color:#b91c1c">5</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Rastreabilidade — REQ → Caso de Teste → Método ABAP</h2>
+    <table>
+      <tr><th>CT ID</th><th>Título</th><th>Tipo</th><th>Método ABAP</th><th>Status</th></tr>
+      
+    <tr>
+      <td class="ct-id">CT-001</td>
+      <td>Geracao automatica do documento FI para fornecedor homologado</td>
+      <td class="center"><span class="badge" style="background:#166534">Positivo</span></td>
+      <td class="mono">test_ok_geracao_automatica_do_doc</td>
+      <td class="center"><span class="badge" style="background:#6b7280">[IMPLEMENTAR]</span></td>
+    </tr>
+
+    <tr>
+      <td class="ct-id">CT-002</td>
+      <td>Rejeicao de NF de fornecedor nao cadastrado no SAP</td>
+      <td class="center"><span class="badge" style="background:#b91c1c">Negativo</span></td>
+      <td class="mono">test_erro_rejeicao_de_nf_de_fornece</td>
+      <td class="center"><span class="badge" style="background:#6b7280">[IMPLEMENTAR]</span></td>
+    </tr>
+
+    <tr>
+      <td class="ct-id">CT-003</td>
+      <td>Processamento automatico de NF no valor limite de R$ 50.000,00</td>
+      <td class="center"><span class="badge" style="background:#b45309">Limite</span></td>
+      <td class="mono">test_limite_processamento_automatico</td>
+      <td class="center"><span class="badge" style="background:#6b7280">[IMPLEMENTAR]</span></td>
+    </tr>
+
+    <tr>
+      <td class="ct-id">CT-004</td>
+      <td>Reprocessamento de evento apos indisponibilidade do Sismat</td>
+      <td class="center"><span class="badge" style="background:#b91c1c">Negativo</span></td>
+      <td class="mono">test_erro_reprocessamento_de_evento</td>
+      <td class="center"><span class="badge" style="background:#6b7280">[IMPLEMENTAR]</span></td>
+    </tr>
+
+    <tr>
+      <td class="ct-id">CT-005</td>
+      <td>SLA de 30 segundos para criacao do documento FI</td>
+      <td class="center"><span class="badge" style="background:#1d4ed8">Não-Funcional</span></td>
+      <td class="mono">test_sla_sla_de_30_segundos_para_c</td>
+      <td class="center"><span class="badge" style="background:#6b7280">[IMPLEMENTAR]</span></td>
+    </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Pontos em Aberto ([VERIFICAR])</h2>
+    <div class="pontos-abertos">
+      <ul><li><strong>CT-003</strong> (pre condicao): Fornecedor homologado (status 'Ativo' na LFA1); NF com valor exatamente igual ao limite configurado no middleware (R$ 50.000,00 [VERIFICAR] valor sujeito a confirmacao final da Controladoria).</li></ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="proximo">
+      <strong>Próximo passo</strong>
+      Todos os 5 métodos estão marcados [IMPLEMENTAR] — nenhuma lógica de
+      assert foi gerada automaticamente. O desenvolvedor responsável deve
+      implementar cada método no ambiente ABAP, prestando atenção especial
+      aos casos não-funcionais (medição de tempo, não apenas validação do fluxo).
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
