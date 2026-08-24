@@ -1,113 +1,101 @@
-# FS-MM-001 — Entrada Única de Nota Fiscal no SAP com Eliminação do Sistema Legado Sismat
+# Especificação Funcional — FS-MM-001
 
 ## 1. Identificação
-
-| Código | FS-MM-001 |
+| Campo | Valor |
 |---|---|
-| Versão | 0.1 — Rascunho |
-| Autor | Equipe Ayesa – Consultoria SAP MM |
-| Data | 02/07/2026 |
-| Status | Em elaboração |
-| REQ de origem | REQ-MM-001 |
-| Projeto | Projeto Indústria Alfa |
-| Cliente | [VERIFICAR COM CLIENTE] |
+| Documento | FS-MM-001 |
+| Cliente | [cliente] |
+| Módulo | MM / FI (integração) |
+| Requisito de origem | REQ-MM-001 |
+| Autor | Juliana Ramos (Consultora Ayesa) |
+| Versão | 1.2 |
+| Status | Aprovado pelo cliente |
 
 ## 2. Objetivo
+Eliminar a dupla digitação de Nota Fiscal (NF) entre o SAP e o sistema
+legado Sismat, atualmente realizada manualmente pelo time de Compras e
+conferida pela Controladoria. A integração deve gerar automaticamente o
+documento contábil (FI) correspondente no SAP a partir da confirmação da
+NF no Sismat, eliminando o retrabalho e o risco de divergência entre os
+dois sistemas.
 
-Eliminar o lançamento paralelo no sistema legado Sismat, concentrando o registro de entrada de mercadoria e a contabilização correspondente em uma única operação no SAP (MM-FI), reduzindo retrabalho manual, risco de divergência de estoque entre sistemas e tempo de fechamento contábil.
-
-## 3. Módulo e Transações SAP
-
-| Módulos | MM / FI |
-|---|---|
-| Transações envolvidas | [VERIFICAR COM CLIENTE] |
-| Versão SAP | [VERIFICAR COM CLIENTE] — ECC 6.0 ou S/4HANA a confirmar (pergunta em aberto do URS) |
+## 3. Módulo e Transações
+- Módulo funcional: MM (Compras), com geração automática de lançamento em FI.
+- Transações SAP envolvidas na criação manual atual (processo hoje):
+  ME23N (exibição de pedido), MIRO (lançamento de fatura manual).
+- Transação(ões) que a integração deve acionar automaticamente para gerar
+  o documento FI: [VERIFICAR] — não confirmado ainda com o time de
+  Basis/ABAP se será via BAPI de lançamento contábil ou transação
+  transacional direta; validar antes do início do desenvolvimento técnico.
 
 ## 4. Escopo
+**Incluso:**
+- Integração assíncrona SAP ↔ Sismat para NFs de fornecedores nacionais
+  já homologados no cadastro SAP.
+- Geração automática do documento FI a partir da confirmação da NF.
 
-**Dentro do escopo:**
+**Fora de escopo (nesta fase):**
+- NFs de fornecedores estrangeiros (processo de importação será tratado
+  em requisito futuro, REQ-MM-006).
+- Estorno automático de documento FI gerado incorretamente — hoje
+  permanece manual via transação padrão SAP.
 
-- Lançamento de entrada de mercadoria (recebimento de NF) diretamente no SAP.
+## 5. Fluxo Principal
+1. Usuário de Compras confirma o recebimento físico da mercadoria e a NF
+   correspondente é lançada no Sismat.
+2. O Sismat publica um evento de confirmação de NF na fila de integração.
+3. O middleware consome o evento, valida o fornecedor contra o cadastro
+   SAP, e aciona a criação do documento FI.
+4. O documento FI é criado no SAP, vinculado ao pedido de compra de
+   origem, sem necessidade de digitação manual pela Controladoria.
+5. O usuário de Compras e o Controller recebem confirmação de que o
+   lançamento foi concluído.
 
-- Atualização automática de estoque no módulo MM.
-
-- Geração automática do documento contábil correspondente no módulo FI a partir do lançamento MM.
-
-- Descontinuação do lançamento paralelo no sistema Sismat para o processo de entrada de NF.
-
-**Fora do escopo:**
-
-- Migração de dados históricos do Sismat para o SAP [VERIFICAR COM CLIENTE].
-
-- Desativação completa do Sismat para outros processos não relacionados a entrada de NF.
-
-- Integração com sistemas fiscais/EDI de emissão de NF-e (assume-se NF já disponível para lançamento).
-
-## 5. Fluxo Principal (caminho feliz)
-
-1. Almoxarife recebe a nota fiscal física/eletrônica no depósito.
-
-2. Almoxarife acessa a transação de entrada de mercadoria no SAP [VERIFICAR COM CLIENTE].
-
-3. Sistema apresenta os dados do pedido de compra vinculado (se houver) para conferência de quantidade e preço.
-
-4. Almoxarife confirma o lançamento de entrada.
-
-5. Sistema atualiza o estoque do material automaticamente no módulo MM.
-
-6. Sistema gera o documento contábil correspondente no módulo FI, sem lançamento manual.
-
-7. Sistema disponibiliza número do documento de entrada e documento contábil para consulta.
+**Critério de aceite de tempo:** os passos 2 a 4 devem ser concluídos em
+até 30 segundos (SLA de negócio, definido com a Controller da área,
+Patricia Souza).
 
 ## 6. Fluxos Alternativos
-
-| Cenário | Tratamento esperado |
-|---|---|
-| NF sem pedido de compra vinculado [HERDADO DO URS] | [VERIFICAR COM CLIENTE] |
-| Divergência de quantidade/preço entre NF e pedido de compra | [VERIFICAR COM CLIENTE] |
-| Estorno/cancelamento de entrada já lançada | [VERIFICAR COM CLIENTE] |
-| Tentativa de lançamento em período contábil fechado | [VERIFICAR COM CLIENTE] |
-| Falha na geração automática do documento contábil (ex: conta não configurada) | [VERIFICAR COM CLIENTE] |
+- **A1 — Fornecedor não cadastrado no SAP:** a integração rejeita a NF,
+  não gera documento FI parcial, e notifica o time de Compras para
+  regularizar o cadastro antes de reprocessar.
+- **A2 — NF acima do limite de valor configurado:** a NF é encaminhada
+  para aprovação manual em vez de processamento automático (limite exato
+  em configuração de middleware — hoje R$ 50.000,00, sujeito a revisão).
+- **A3 — Sismat indisponível no momento da confirmação:** o evento fica
+  em fila e é reprocessado automaticamente quando o Sismat voltar,
+  respeitando o SLA a partir do momento em que a fila é liberada.
 
 ## 7. Regras de Negócio
-
-| ID | Regra |
-|---|---|
-| RN01 | Toda entrada de mercadoria deve ser registrada exclusivamente no SAP; nenhum lançamento equivalente deve ser realizado no Sismat após o go-live. |
-| RN02 | A geração do documento contábil deve ocorrer automaticamente e de forma síncrona ao lançamento da entrada de mercadoria, sem etapa manual intermediária. |
-| RN03 | [VERIFICAR COM CLIENTE] — regra de conta contábil/centro de custo a ser debitada conforme grupo de mercadorias. |
-| RN04 [HERDADO DO URS] | Critério para tratamento de dados históricos do Sismat ainda não definido — depende de definição do cliente. |
+- RN-01: a integração só processa NFs de fornecedores já homologados no
+  cadastro SAP (status "Ativo").
+- RN-02: NFs de fornecedor não cadastrado devem ser rejeitadas com
+  mensagem de erro clara, nunca processadas parcialmente (documento FI
+  incompleto é considerado erro crítico).
+- RN-03: o SLA de 30 segundos é medido do evento de confirmação da NF no
+  Sismat até a criação efetiva do documento FI no SAP — não inclui o
+  tempo de digitação da NF pelo usuário no Sismat.
 
 ## 8. Integrações
-
-| De | Para | Comportamento em falha |
-|---|---|---|
-| MM | FI | Geração automática de documento contábil na entrada de mercadoria; comportamento em falha [VERIFICAR COM CLIENTE] |
-| MM | Compras (Pedido de Compra) [HERDADO DO URS] | Referência de PO na entrada, quando existente; comportamento em falha [VERIFICAR COM CLIENTE] |
-| SAP | Sismat [HERDADO DO URS] | Interface de descontinuação/migração de saldo, se aplicável; comportamento em falha [VERIFICAR COM CLIENTE] |
+- SAP ↔ Sismat via middleware assíncrono, consumindo fila de eventos.
+- Middleware ↔ SAP: mecanismo de chamada [VERIFICAR] (ver seção 3).
+- Notificação ao usuário de Compras e à Controladoria: canal
+  [VERIFICAR] — a definir se será e-mail automático ou notificação
+  dentro do próprio Sismat.
 
 ## 9. Critérios de Aceite
+- CA-01: documento FI gerado automaticamente em até 30 segundos após
+  confirmação da NF, para fornecedor homologado.
+- CA-02: NF de fornecedor não cadastrado é rejeitada, sem gerar
+  documento FI parcial, com mensagem de erro visível ao usuário.
+- CA-03: NF no limite máximo de valor configurado é processada
+  normalmente pela via automática (não deve cair em aprovação manual por
+  erro de arredondamento ou comparação).
 
-| # | Critério mensurável | Método de verificação |
-|---|---|---|
-| CA01 | 100% das entradas de NF lançadas exclusivamente no SAP, nos primeiros 30 dias após go-live, ambiente de produção. | Relatório de lançamentos MM x ausência de registros no Sismat. |
-| CA02 | Zero lançamentos duplicados no Sismat, nos primeiros 30 dias após go-live, ambiente de produção. | Auditoria de log de acesso ao Sismat. |
-| CA03 | Documento contábil gerado em até 30 segundos após confirmação da entrada, ambiente de produção sob carga normal. | Comparação de timestamp entre documento MM e documento FI. |
-| CA04 | [VERIFICAR COM CLIENTE] — definir critério de aceite para tratamento de dados históricos do Sismat, se aplicável. | [VERIFICAR COM CLIENTE] |
-
-## 10. Pontos em Aberto
-
-| # | Dúvida / Pendência | Responsável | Prazo |
-|---|---|---|---|
-| P01 [HERDADO DO URS] | Qual o prazo planejado para desativação definitiva do Sismat e existe dependência de outras áreas? | Cliente | [VERIFICAR COM CLIENTE] |
-| P02 [HERDADO DO URS] | Há dados históricos no Sismat que precisam ser migrados para o SAP antes do go-live? | Cliente | [VERIFICAR COM CLIENTE] |
-| P03 [HERDADO DO URS] | A versão SAP implantada é ECC ou S/4HANA? | Cliente/TI | [VERIFICAR COM CLIENTE] |
-| P04 [HERDADO DO URS] | Quais perfis de usuário terão acesso à transação de entrada de mercadoria? | Cliente | [VERIFICAR COM CLIENTE] |
-| P05 | Confirmar transações SAP a serem utilizadas para entrada de mercadoria (ex: MIGO). | Ayesa/Cliente | [VERIFICAR COM CLIENTE] |
-
-### Aprovações
-
-| Analista Funcional | Líder de Projeto | Cliente |
-|---|---|---|
-|  |  |  |
-| [Nome / Data] | [Nome / Data] | [Nome / Data] |
+## 10. Pontos Abertos
+- [VERIFICAR] Transação/mecanismo técnico exato de criação do documento
+  FI (BAPI vs. transação direta) — pendente de validação com Basis/ABAP.
+- [VERIFICAR] Canal de notificação ao usuário (e-mail vs. dentro do
+  Sismat).
+- Confirmar com a Controladoria se o limite de R$ 50.000,00 (fluxo A2)
+  é valor final ou ainda sujeito a revisão pela diretoria financeira.
