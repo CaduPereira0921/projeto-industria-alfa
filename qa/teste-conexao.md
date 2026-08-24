@@ -1,0 +1,1 @@
+teste via MCP customizado
