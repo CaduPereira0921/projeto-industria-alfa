@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Plano de Testes - REQ-MM-001</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background:#f3f4f6; margin:0; padding:32px; color:#1f2937; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header { background:#111827; color:#fff; padding:24px 32px; border-radius:12px 12px 0 0; }
+  .header h1 { margin:0; font-size:22px; }
+  .header p { margin:6px 0 0; color:#9ca3af; font-size:14px; }
+  .section { background:#fff; padding:24px 32px; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb; }
+  .section h2 { font-size:15px; text-transform:uppercase; letter-spacing:.05em; color:#374151; border-bottom:2px solid #e5e7eb; padding-bottom:8px; }
+  .footer { background:#fff; padding:20px 32px; border-radius:0 0 12px 12px; border:1px solid #e5e7eb; border-top:none; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th, td { text-align:left; padding:10px; border-bottom:1px solid #e5e7eb; vertical-align:top; }
+  th { background:#f9fafb; font-size:11px; text-transform:uppercase; color:#6b7280; }
+  td.center { text-align:center; }
+  td.ct-id { font-weight:600; white-space:nowrap; }
+  .badge { color:#fff; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .avisos { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:16px 20px; }
+  .avisos strong { display:block; color:#92400e; font-size:12px; text-transform:uppercase; margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Plano de Testes — REQ-MM-001</h1>
+    <p>[cliente] · Módulo MM/FI · Etapa 1/3 — pipeline-qualidade-ayesa</p>
+  </div>
+  <div class="section">
+    <h2>Requisito</h2>
+    <p>Integracao automatica SAP <-> Sismat para eliminar dupla digitacao de Nota Fiscal: geracao automatica do documento contabil (FI) no SAP a partir da confirmacao da NF no Sismat, para fornecedores nacionais homologados.</p>
+  </div>
+  <div class="section">
+    <h2>Casos de Teste (5)</h2>
+    <table>
+      <tr><th>ID</th><th>Título</th><th>Tipo</th><th>Pré-condição</th><th>Passos</th><th>Resultado Esperado</th></tr>
+      
+    <tr style="background:#ecfdf5">
+      <td class="ct-id">CT-001</td>
+      <td>Geracao automatica do documento FI para fornecedor homologado</td>
+      <td class="center"><span class="badge" style="background:#166534">Positivo</span></td>
+      <td>NF confirmada no Sismat para fornecedor com status 'Ativo' no cadastro SAP (LFA1); valor da NF abaixo do limite de aprovacao manual (R$ 50.000,00).</td>
+      <td>1. Confirmar recebimento fisico da mercadoria e lancar a NF no Sismat.<br>2. Aguardar publicacao do evento de confirmacao na fila de integracao.<br>3. Middleware consome o evento e executa ZFM_VALIDA_FORNECEDOR_MM001.<br>4. Middleware aciona ZFM_GERA_DOC_FI_MM001 para criar o documento FI.</td>
+      <td>Documento FI e criado automaticamente, vinculado ao pedido de compra de origem, sem digitacao manual pela Controladoria; usuario de Compras e Controller recebem confirmacao do lancamento (CA-01, RN-01).</td>
+    </tr>
+
+    <tr style="background:#fef2f2">
+      <td class="ct-id">CT-002</td>
+      <td>Rejeicao de NF de fornecedor nao cadastrado no SAP</td>
+      <td class="center"><span class="badge" style="background:#b91c1c">Negativo</span></td>
+      <td>NF confirmada no Sismat para fornecedor sem status 'Ativo' na LFA1 (nao homologado ou inexistente no cadastro SAP).</td>
+      <td>1. Confirmar NF no Sismat para fornecedor nao homologado.<br>2. Evento de confirmacao chega ao middleware.<br>3. ZFM_VALIDA_FORNECEDOR_MM001 executa a validacao do fornecedor contra a LFA1.</td>
+      <td>NF e rejeitada; nenhum documento FI parcial e criado; mensagem de erro clara e exibida; time de Compras e notificado para regularizar o cadastro antes de reprocessar (RN-02, Fluxo A1).</td>
+    </tr>
+
+    <tr style="background:#fffbeb">
+      <td class="ct-id">CT-003</td>
+      <td>Processamento automatico de NF no valor limite de R$ 50.000,00</td>
+      <td class="center"><span class="badge" style="background:#b45309">Limite</span></td>
+      <td>Fornecedor homologado (status 'Ativo' na LFA1); NF com valor exatamente igual ao limite configurado no middleware (R$ 50.000,00 [VERIFICAR] valor sujeito a confirmacao final da Controladoria).</td>
+      <td>1. Confirmar NF de valor R$ 50.000,00 para fornecedor homologado no Sismat.<br>2. Evento de confirmacao e consumido pelo middleware.<br>3. Middleware compara o valor da NF com o limite configurado.</td>
+      <td>NF e processada pela via automatica (nao deve cair em aprovacao manual por erro de arredondamento ou comparacao de limite) (CA-03).</td>
+    </tr>
+
+    <tr style="background:#fef2f2">
+      <td class="ct-id">CT-004</td>
+      <td>Reprocessamento de evento apos indisponibilidade do Sismat</td>
+      <td class="center"><span class="badge" style="background:#b91c1c">Negativo</span></td>
+      <td>Sismat indisponivel no momento em que o evento de confirmacao de NF deveria ser publicado/consumido; fornecedor homologado.</td>
+      <td>1. Simular indisponibilidade do Sismat durante a confirmacao da NF.<br>2. Restabelecer a disponibilidade do Sismat.<br>3. Verificar se o evento permanece em fila e e reprocessado automaticamente.</td>
+      <td>Evento fica retido em fila durante a indisponibilidade e e reprocessado automaticamente quando o Sismat volta, respeitando o SLA de 30s a partir da liberacao da fila (Fluxo A3).</td>
+    </tr>
+
+    <tr style="background:#eff6ff">
+      <td class="ct-id">CT-005</td>
+      <td>SLA de 30 segundos para criacao do documento FI</td>
+      <td class="center"><span class="badge" style="background:#1d4ed8">Não-Funcional</span></td>
+      <td>Fornecedor homologado; ambiente de teste com fila de eventos e ZTB_LOG_INTEGRACAO_MM001 disponiveis para registro de timestamp.</td>
+      <td>1. Confirmar NF no Sismat e capturar o timestamp de inicio (evento de confirmacao).<br>2. Aguardar a criacao efetiva do documento FI no SAP.<br>3. Capturar o timestamp de fim gravado na ZTB_LOG_INTEGRACAO_MM001.<br>4. Calcular o tempo decorrido entre inicio e fim.</td>
+      <td>Tempo decorrido entre o evento de confirmacao da NF e a criacao efetiva do documento FI e menor ou igual a 30 segundos (RN-03, CA-01). A validacao deve medir o tempo real de execucao (ex.: via GET RUN TIME FIELD), nao apenas conferir se o documento FI foi criado.</td>
+    </tr>
+    </table>
+  </div>
+  <div class="footer">
+    <div class="avisos">
+      <strong>Avisos de cobertura de tipo</strong>
+      <ul><li>Nenhum aviso — cobertura mínima de tipos atendida.</li></ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>
